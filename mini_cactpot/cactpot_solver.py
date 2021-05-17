@@ -1,10 +1,25 @@
+"""
+Mini-Cactpot Solver
+Zachary McCullough
+2021-05-16
+zam.mccullough@gmail.com
+"""
+
+#########
+# Imports
+#########
+
 import random
 import typing as t
 import itertools
 
 
-class Board:
+#########
+# Classes
+#########
 
+
+class Board:
     sums = {
         6: 10000,
         7: 36,
@@ -24,13 +39,13 @@ class Board:
         21: 1080,
         22: 144,
         23: 1800,
-        24: 3600
+        24: 3600,
     }
 
     lines = {
-        0: lambda x: x[0:3],    # top across
-        1: lambda x: x[3:6],    # middle across
-        2: lambda x: x[6:9],    # bottom across
+        0: lambda x: x[0:3],  # top across
+        1: lambda x: x[3:6],  # middle across
+        2: lambda x: x[6:9],  # bottom across
         3: lambda x: x[0:7:3],  # left down
         4: lambda x: x[1:8:3],  # middle down
         5: lambda x: x[2:9:3],  # right down
@@ -47,24 +62,24 @@ class Board:
         5: {1, 5},
         6: {2, 3, 7},
         7: {2, 4},
-        8: {2, 5, 6}
+        8: {2, 5, 6},
     }
 
     def __init__(self):
-        self.arr = ['*']*9
+        self.arr = ["*"] * 9
         self.used = set()
 
     def __repr__(self):
-        out = ''
+        out = ""
         for i in range(3):
-            out += '\t'.join(str(x) for x in self.arr[i*3:i*3+3]) + '\n'
+            out += "\t".join(str(x) for x in self.arr[i * 3 : i * 3 + 3]) + "\n"
         return out
 
     def __str__(self):
         return self.__repr__()
 
     def reveal(self, x, y, num):
-        self.arr[3*y+x] = num
+        self.arr[3 * y + x] = num
         self.used.add(num)
 
     @staticmethod
@@ -77,7 +92,7 @@ class Board:
         stars = 0
         total = 0
         for n in arr:
-            if n == '*':
+            if n == "*":
                 stars += 1
             else:
                 total += n
@@ -87,7 +102,9 @@ class Board:
         return self.lines[index](self.arr)
 
     @staticmethod
-    def _calculate_possible_sums(arr: t.Iterable[int], given: t.Optional[t.Iterable[int]] = None) -> t.List[t.Set[int]]:
+    def _calculate_possible_sums(
+        arr: t.Iterable[int], given: t.Optional[t.Iterable[int]] = None
+    ) -> t.List[t.Set[int]]:
         """
         Given an input of used numbers, from the remaining ones calculate what possible sums exist. Use given
         to say one or two numbers must be used.
@@ -100,17 +117,25 @@ class Board:
 
         arr_set = set(arr)
         if given is not None and len(arr_set.intersection(given_set)) != given_length:
-            raise ValueError('If a number is given, then it must be already used as well.')
+            raise ValueError(
+                "If a number is given, then it must be already used as well."
+            )
         if given_length == 3:
             return [set(given)]
 
         allowed_nums = set(range(1, 10)) - set(arr)
 
         # iterate over
-        base_combinations = itertools.combinations(allowed_nums - given_set, 3-given_length)
-        result = [set(x).union(given_set) for x in base_combinations] if given is not None else [set(x) for x in base_combinations]
+        base_combinations = itertools.combinations(
+            allowed_nums - given_set, 3 - given_length
+        )
+        result = (
+            [set(x).union(given_set) for x in base_combinations]
+            if given is not None
+            else [set(x) for x in base_combinations]
+        )
         if len(result) == 0:
-            raise ValueError('Maybe you messed up?')
+            raise ValueError("Maybe you messed up?")
         return result
 
     def get_possible_rows_for_line(self, line: int) -> t.List[t.Set[int]]:
@@ -122,7 +147,7 @@ class Board:
         works out great.
         """
         nums = self.get_line(line)
-        given = set(nums) - set('*')
+        given = set(nums) - set("*")
         possible_lines = self._calculate_possible_sums(self.used, given)
         return possible_lines
 
@@ -144,7 +169,7 @@ class Board:
         line_num = -1
         max_score = -1
         for i in range(len(self.lines)):
-            if '*' not in self.lines[i](self.arr):
+            if "*" not in self.lines[i](self.arr):
                 continue
             score = self.expected_line_value(i)
             if score > max_score:
@@ -201,10 +226,12 @@ class Board:
         max_score = -1
         tie_breaker = -1
         for i in range(9):
-            if self.arr[i] != '*':
+            if self.arr[i] != "*":
                 continue
             score = self.expected_value_through_square(i)
-            if score > max_score or (score == max_score and len(self.intersections[i]) > tie_breaker):
+            if score > max_score or (
+                score == max_score and len(self.intersections[i]) > tie_breaker
+            ):
                 max_score = score
                 square = i
                 tie_breaker = len(self.intersections[i])
@@ -216,6 +243,7 @@ class Interact:
     This is a helper class that will drive a game of mini-cactpot, creating a true board and interacting with the
     Board class
     """
+
     def __init__(self, board=None):
         if board is not None:
             self.true_board = board
@@ -245,7 +273,9 @@ class Interact:
         :return: the score value result
         """
         self.board.arr = self.true_board
-        score = self.board.sums[sum(self.board.get_line(line))]  # sums the optimal line, then returns score
+        score = self.board.sums[
+            sum(self.board.get_line(line))
+        ]  # sums the optimal line, then returns score
         return score
 
     def take_turn(self) -> None:
@@ -257,23 +287,10 @@ class Interact:
         x_coord, y_coord = self._coord(square_to_click)
         self.board.reveal(x_coord, y_coord, self.true_board[square_to_click])
 
+
 def main():
-    max_iters = 100000
-    summed_scores = 0
-    for i in range(max_iters):
-        if i % 1000 == 0 and i > 0:
-            print(i, 'iteration. Score:', summed_scores, 'Avg:', summed_scores/i)
-        game = Interact()
-        game.play_game()
-        summed_scores += game.final_result
-
-    print('Average Line Score: ', summed_scores / max_iters)
+    pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
-
-
-
-
