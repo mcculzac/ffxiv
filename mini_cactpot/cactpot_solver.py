@@ -121,7 +121,7 @@ class Board:
                 "If a number is given, then it must be already used as well."
             )
         if given_length == 3:
-            return [set(given)]
+            return [given_set]
 
         allowed_nums = set(range(1, 10)) - set(arr)
 
@@ -182,7 +182,7 @@ class Board:
         :return: Tuple of highest line num and the score associated with it
         """
         line_num = -1
-        max_score = -1
+        max_score = -1.0
         for i in range(len(self.lines)):
             score = self.expected_line_value(i)
             if score > max_score:
