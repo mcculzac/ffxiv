@@ -286,7 +286,7 @@ class Interact:
         :return: None
         """
         # you're given one to start at random
-        rand_num = random.randint(1, 9)
+        rand_num = random.randint(0, 8)
         x_coord, y_coord = self._coord(rand_num)
         self.board.reveal(x_coord, y_coord, self.true_board[rand_num])
 

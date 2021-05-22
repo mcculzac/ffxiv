@@ -141,7 +141,7 @@ class MyTestCase(unittest.TestCase):
     #     print('Over 10000 avg:', sum(result) / len(result))
 
     def test_average(self):
-        max_iters = 1000
+        max_iters = 30000
         summed_scores = 0
         for i in range(max_iters):
             if i % 1000 == 0 and i > 0:
