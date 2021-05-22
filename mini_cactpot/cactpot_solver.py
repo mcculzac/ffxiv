@@ -1,8 +1,9 @@
 """
 Mini-Cactpot Solver
 Zachary McCullough
-2021-05-16
+Last Modified: 2021-05-21
 zam.mccullough@gmail.com
+TODO: In the human interface for solving, make the listed coords more untiuitive (flip y numbers, maybe add 1 to each?)
 """
 
 #########
@@ -53,6 +54,17 @@ class Board:
         7: lambda x: x[2:7:2],  # diag r-l down
     }
 
+    line_num_to_str = {
+        0: "Top Row",
+        1: "Middle Row",
+        2: "Bottom Row",
+        3: "Left Column",
+        4: "Middle Column",
+        5: "Right Column",
+        6: "Top Left to Bottom Right Diagonal",
+        7: "Top Right to Bottom Left Diagonal"
+    }
+
     intersections = {
         0: {0, 3, 6},
         1: {0, 4},
@@ -77,6 +89,13 @@ class Board:
 
     def __str__(self):
         return self.__repr__()
+
+    def print(self):
+        out = ""
+        for i in range(3):
+            out += str(i) + "\t" + "\t".join(str(x) for x in self.arr[i * 3: i * 3 + 3]) + "\n"
+        out += "-\t" + "\t".join(str(x) for x in [0, 1, 2]) + "\n"
+        print(out)
 
     def reveal(self, x, y, num):
         self.arr[3 * y + x] = num
@@ -137,6 +156,10 @@ class Board:
         if len(result) == 0:
             raise ValueError("Maybe you messed up?")
         return result
+
+    @staticmethod
+    def _coord(x: int) -> t.Tuple[int, int]:
+        return x % 3, x // 3
 
     def get_possible_rows_for_line(self, line: int) -> t.List[t.Set[int]]:
         """
@@ -252,6 +275,7 @@ class Interact:
         self.board = Board()
         self.final_result = None
 
+    # This is duplicated from Board, but *shrug*
     @staticmethod
     def _coord(x: int) -> t.Tuple[int, int]:
         return x % 3, x // 3
@@ -261,7 +285,13 @@ class Interact:
         Plays a single game, consuming this object, updating final_result with the score
         :return: None
         """
-        for j in range(4):
+        # you're given one to start at random
+        rand_num = random.randint(1, 9)
+        x_coord, y_coord = self._coord(rand_num)
+        self.board.reveal(x_coord, y_coord, self.true_board[rand_num])
+
+        # run the game now
+        for j in range(3):
             self.take_turn()
         optimal_line, _ = self.board.highest_expected_value_line()
         self.final_result = self.choose_line(optimal_line)
@@ -288,8 +318,29 @@ class Interact:
         self.board.reveal(x_coord, y_coord, self.true_board[square_to_click])
 
 
+def human_interact():
+    b = Board()
+    num = input("Please type in first number with coords in format: x,y,#:")
+    split_num = num.split(',')
+    coord_x = int(split_num[0])
+    coord_y = int(split_num[1])
+    num_to_reveal = int(split_num[2])
+    b.reveal(coord_x, coord_y, num_to_reveal)
+    print('Board:')
+    b.print()
+    # 3 turns
+    for i in range(3):
+        optimal_square = b._coord(b.optimal_click())
+        revealed_num = int(input(f"Click on {optimal_square} and type the revealed number:"))
+        b.reveal(optimal_square[0], optimal_square[1], revealed_num)
+        print('Board:')
+        b.print()
+    line_str = b.line_num_to_str[b.highest_expected_value_line()[0]]
+    print(f"Choose the {line_str}.")
+
+
 def main():
-    pass
+    human_interact()
 
 
 if __name__ == "__main__":
